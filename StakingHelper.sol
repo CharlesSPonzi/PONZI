@@ -82,13 +82,13 @@ interface IStaking {
 contract StakingHelper {
 
     address public immutable staking;
-    address public immutable RUG;
+    address public immutable PONZI;
 
-    constructor ( address _staking, address _RUG ) {
+    constructor ( address _staking, address _PONZI ) {
         require( _staking != address(0) );
         staking = _staking;
-        require( _RUG != address(0) );
-        RUG = _RUG;
+        require( _PONZI != address(0) );
+        PONZI = _PONZI;
     }
 
     function stake( uint _amount ) external {
