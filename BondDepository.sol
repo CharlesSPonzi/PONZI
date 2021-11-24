@@ -623,9 +623,9 @@ contract RUGBondDepository is Ownable {
 
     /* ======== STATE VARIABLES ======== */
 
-    address public immutable RUG; // token given as payment for bond
+    address public immutable PONZI; // token given as payment for bond
     address public immutable principle; // token used to create bond
-    address public immutable treasury; // mints RUG when receives principle
+    address public immutable treasury; // mints PONZI when receives principle
     address public immutable DAO; // receives profit share from bond
 
     bool public immutable isLiquidityBond; // LP and Reserve bonds are treated slightly different
@@ -660,7 +660,7 @@ contract RUGBondDepository is Ownable {
 
     // Info for bond holder
     struct Bond {
-        uint payout; // RUG remaining to be paid
+        uint payout; // PONZI remaining to be paid
         uint vesting; // Blocks left to vest
         uint lastBlock; // Last interaction
         uint pricePaid; // In DAI, for front end viewing
@@ -681,14 +681,14 @@ contract RUGBondDepository is Ownable {
     /* ======== INITIALIZATION ======== */
 
     constructor ( 
-        address _RUG,
+        address _PONZI,
         address _principle,
         address _treasury, 
         address _DAO, 
         address _bondCalculator
     ) {
-        require( _RUG != address(0) );
-        RUG = _RUG;
+        require( _PONZI != address(0) );
+        PONZI = _PONZI;
         require( _principle != address(0) );
         principle = _principle;
         require( _treasury != address(0) );
@@ -845,7 +845,7 @@ contract RUGBondDepository is Ownable {
         ITreasury( treasury ).deposit( _amount, principle, profit );
         
         if ( fee != 0 ) { // fee is transferred to dao 
-            IERC20( RUG ).safeTransfer( DAO, fee ); 
+            IERC20( PONZI ).safeTransfer( DAO, fee ); 
         }
         
         // total debt is increased
@@ -912,13 +912,13 @@ contract RUGBondDepository is Ownable {
      */
     function stakeOrSend( address _recipient, bool _stake, uint _amount ) internal returns ( uint ) {
         if ( !_stake ) { // if user does not want to stake
-            IERC20( RUG ).transfer( _recipient, _amount ); // send payout
+            IERC20( PONZI ).transfer( _recipient, _amount ); // send payout
         } else { // if user wants to stake
             if ( useHelper ) { // use if staking warmup is 0
-                IERC20( RUG ).approve( stakingHelper, _amount );
+                IERC20( PONZI ).approve( stakingHelper, _amount );
                 IStakingHelper( stakingHelper ).stake( _amount, _recipient );
             } else {
-                IERC20( RUG ).approve( staking, _amount );
+                IERC20( PONZI ).approve( staking, _amount );
                 IStaking( staking ).stake( _amount, _recipient );
             }
         }
@@ -966,7 +966,7 @@ contract RUGBondDepository is Ownable {
      *  @return uint
      */
     function maxPayout() public view returns ( uint ) {
-        return IERC20( RUG ).totalSupply().mul( terms.maxPayout ).div( 100000 );
+        return IERC20( PONZI ).totalSupply().mul( terms.maxPayout ).div( 100000 );
     }
 
     /**
@@ -1017,7 +1017,7 @@ contract RUGBondDepository is Ownable {
 
 
     /**
-     *  @notice calculate current ratio of debt to RUG supply
+     *  @notice calculate current ratio of debt to PONZI supply
      *  @return debtRatio_ uint
      */
     function debtRatio() public view returns ( uint debtRatio_ ) {   
@@ -1079,7 +1079,7 @@ contract RUGBondDepository is Ownable {
     }
 
     /**
-     *  @notice calculate amount of RUG available for claim by depositor
+     *  @notice calculate amount of PONZI available for claim by depositor
      *  @param _depositor address
      *  @return pendingPayout_ uint
      */
@@ -1100,7 +1100,7 @@ contract RUGBondDepository is Ownable {
     /* ======= AUXILLIARY ======= */
 
     /**
-     *  @notice allow anyone to send lost tokens (excluding principle or RUG) to the DAO
+     *  @notice allow anyone to send lost tokens (excluding principle or PONZI) to the DAO
      *  @return bool
      */
     function recoverLostToken( address _token ) external returns ( bool ) {
