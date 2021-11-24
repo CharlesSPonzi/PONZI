@@ -873,7 +873,7 @@ contract PONZIERC20Token is ERC20Permit, VaultOwned {
 
     using SafeMath for uint256;
 
-    constructor() ERC20("R U Generous", "RUG", 9) {
+    constructor() ERC20("Ponzi Coin", "PONZI", 9) {
     }
 
     function mint(address account_ , uint256 amount_ ) external onlyVault() {
