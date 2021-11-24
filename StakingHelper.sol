@@ -92,8 +92,8 @@ contract StakingHelper {
     }
 
     function stake( uint _amount ) external {
-        IERC20( RUG ).transferFrom( msg.sender, address(this), _amount );
-        IERC20( RUG ).approve( staking, _amount );
+        IERC20( PONZI ).transferFrom( msg.sender, address(this), _amount );
+        IERC20( PONZI ).approve( staking, _amount );
         IStaking( staking ).stake( _amount, msg.sender );
         IStaking( staking ).claim( msg.sender );
     }
