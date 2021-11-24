@@ -869,7 +869,7 @@ contract VaultOwned is Ownable {
 
 }
 
-contract RUGERC20Token is ERC20Permit, VaultOwned {
+contract PONZIERC20Token is ERC20Permit, VaultOwned {
 
     using SafeMath for uint256;
 
