@@ -77,17 +77,17 @@ interface IERC20 {
 contract StakingWarmup {
 
     address public immutable staking;
-    address public immutable sRUG;
+    address public immutable sPONZI;
 
-    constructor ( address _staking, address _sRUG ) {
+    constructor ( address _staking, address _sPONZI ) {
         require( _staking != address(0) );
         staking = _staking;
-        require( _sRUG != address(0) );
-        sRUG = _sRUG;
+        require( _sPONZI != address(0) );
+        sPONZI = _sPONZI;
     }
 
     function retrieve( address _staker, uint _amount ) external {
         require( msg.sender == staking );
-        IERC20( sRUG ).transfer( _staker, _amount );
+        IERC20( sPONZI ).transfer( _staker, _amount );
     }
 }
