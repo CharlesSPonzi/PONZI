@@ -259,7 +259,7 @@ interface IBondingCalculator {
   function valuation( address pair_, uint amount_ ) external view returns ( uint _value );
 }
 
-contract RUGBondingCalculator is IBondingCalculator {
+contract PONZIBondingCalculator is IBondingCalculator {
 
     using FixedPoint for *;
     using SafeMath for uint;
@@ -267,9 +267,9 @@ contract RUGBondingCalculator is IBondingCalculator {
 
     address public immutable RUG;
 
-    constructor( address _RUG ) {
-        require( _RUG != address(0) );
-        RUG = _RUG;
+    constructor( address _PONZI ) {
+        require( _PONZI != address(0) );
+        PONZI = _PONZI;
     }
 
     function getKValue( address _pair ) public view returns( uint k_ ) {
@@ -296,11 +296,11 @@ contract RUGBondingCalculator is IBondingCalculator {
         ( uint reserve0, uint reserve1, ) = IPancakeswapV2Pair( _pair ).getReserves();
 
         uint reserve;
-        if ( IPancakeswapV2Pair( _pair ).token0() == RUG ) {
+        if ( IPancakeswapV2Pair( _pair ).token0() == PONZI ) {
             reserve = reserve1;
         } else {
             reserve = reserve0;
         }
-        return reserve.mul( 2 * ( 10 ** IERC20( RUG ).decimals() ) ).div( getTotalValue( _pair ) );
+        return reserve.mul( 2 * ( 10 ** IERC20( PONZI ).decimals() ) ).div( getTotalValue( _pair ) );
     }
 }
