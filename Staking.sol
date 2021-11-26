@@ -515,8 +515,8 @@ contract Ownable is IOwnable {
     }
 }
 
-interface IsRUG {
-    function rebase( uint256 rugProfit_, uint epoch_) external returns (uint256);
+interface IsPONZI {
+    function rebase( uint256 ponziProfit_, uint epoch_) external returns (uint256);
 
     function circulatingSupply() external view returns (uint256);
 
@@ -542,8 +542,8 @@ contract OlympusStaking is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address public immutable RUG;
-    address public immutable sRUG;
+    address public immutable PONZI;
+    address public immutable sPONZI;
 
     struct Epoch {
         uint length;
@@ -597,7 +597,7 @@ contract OlympusStaking is Ownable {
     function stake( uint _amount, address _recipient ) external returns ( bool ) {
         rebase();
         
-        IERC20( RUG ).safeTransferFrom( msg.sender, address(this), _amount );
+        IERC20( PONZI ).safeTransferFrom( msg.sender, address(this), _amount );
 
         Claim memory info = warmupInfo[ _recipient ];
         require( !info.lock, "Deposits for account are locked" );
@@ -652,16 +652,16 @@ contract OlympusStaking is Ownable {
         if ( _trigger ) {
             rebase();
         }
-        IERC20( sRUG ).safeTransferFrom( msg.sender, address(this), _amount );
-        IERC20( RUG ).safeTransfer( msg.sender, _amount );
+        IERC20( sPONZI ).safeTransferFrom( msg.sender, address(this), _amount );
+        IERC20( PONZI ).safeTransfer( msg.sender, _amount );
     }
 
     /**
-        @notice returns the sRUG index, which tracks rebase growth
+        @notice returns the sPONZI index, which tracks rebase growth
         @return uint
      */
     function index() public view returns ( uint ) {
-        return IsRUG( sRUG ).index();
+        return IsPONZI( sPONZI ).index();
     }
 
     /**
@@ -670,7 +670,7 @@ contract OlympusStaking is Ownable {
     function rebase() public {
         if( epoch.endBlock <= block.number ) {
 
-            IsRUG( sRUG ).rebase( epoch.distribute, epoch.number );
+            IsRUG( sPONZI ).rebase( epoch.distribute, epoch.number );
 
             epoch.endBlock = epoch.endBlock.add( epoch.length );
             epoch.number++;
@@ -680,7 +680,7 @@ contract OlympusStaking is Ownable {
             }
 
             uint balance = contractBalance();
-            uint staked = IsRUG( sRUG ).circulatingSupply();
+            uint staked = IsPONZI( sPONZI ).circulatingSupply();
 
             if( balance <= staked ) {
                 epoch.distribute = 0;
@@ -691,11 +691,11 @@ contract OlympusStaking is Ownable {
     }
 
     /**
-        @notice returns contract RUG holdings, including bonuses provided
+        @notice returns contract PONZI holdings, including bonuses provided
         @return uint
      */
     function contractBalance() public view returns ( uint ) {
-        return IERC20( RUG ).balanceOf( address(this) ).add( totalBonus );
+        return IERC20( PONZI ).balanceOf( address(this) ).add( totalBonus );
     }
 
     /**
@@ -705,7 +705,7 @@ contract OlympusStaking is Ownable {
     function giveLockBonus( uint _amount ) external {
         require( msg.sender == locker );
         totalBonus = totalBonus.add( _amount );
-        IERC20( sRUG ).safeTransfer( locker, _amount );
+        IERC20( sPONZI ).safeTransfer( locker, _amount );
     }
 
     /**
@@ -715,7 +715,7 @@ contract OlympusStaking is Ownable {
     function returnLockBonus( uint _amount ) external {
         require( msg.sender == locker );
         totalBonus = totalBonus.sub( _amount );
-        IERC20( sRUG ).safeTransferFrom( locker, address(this), _amount );
+        IERC20( sPONZI ).safeTransferFrom( locker, address(this), _amount );
     }
 
     enum CONTRACTS { DISTRIBUTOR, WARMUP, LOCKER }
