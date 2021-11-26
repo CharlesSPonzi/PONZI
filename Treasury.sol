@@ -192,7 +192,7 @@ interface IERC20Mintable {
   function mint( address account_, uint256 ammount_ ) external;
 }
 
-interface IRUGERC20 {
+interface IPONZIERC20 {
     function burnFrom(address account_, uint256 amount_) external;
 }
 
@@ -200,7 +200,7 @@ interface IBondCalculator {
   function valuation( address pair_, uint amount_ ) external view returns ( uint _value );
 }
 
-contract RugTreasury is Ownable {
+contract PonziTreasury is Ownable {
 
     using SafeMath for uint;
     using SafeERC20 for IERC20;
@@ -216,10 +216,10 @@ contract RugTreasury is Ownable {
     event ChangeQueued( MANAGING indexed managing, address queued );
     event ChangeActivated( MANAGING indexed managing, address activated, bool result );
 
-    enum MANAGING { RESERVEDEPOSITOR, RESERVESPENDER, RESERVETOKEN, RESERVEMANAGER, LIQUIDITYDEPOSITOR, LIQUIDITYTOKEN, LIQUIDITYMANAGER, DEBTOR, REWARDMANAGER, SRUG }
+    enum MANAGING { RESERVEDEPOSITOR, RESERVESPENDER, RESERVETOKEN, RESERVEMANAGER, LIQUIDITYDEPOSITOR, LIQUIDITYTOKEN, LIQUIDITYMANAGER, DEBTOR, REWARDMANAGER, SPONZI }
 
-    address public immutable RUG;
-    address public SCAM = 0x00aa85e010204068b7CC2235800B2d8036bdbF2E;
+    address public immutable PONZI;
+    address public SCAM = 0x2E2553a11612E9a8E38C83cf85D6774682091c75;
     
     uint public immutable blocksNeededForQueue;
 
@@ -262,22 +262,22 @@ contract RugTreasury is Ownable {
     mapping( address => bool ) public isRewardManager;
     mapping( address => uint ) public rewardManagerQueue; // Delays changes to mapping.
 
-    address public sRUG;
-    uint public sRUGQueue; // Delays change to sRUG address
+    address public sPONZI;
+    uint public sPONZIQueue; // Delays change to sPONZI address
     
     uint public totalReserves; // Risk-free value of all assets
     uint public totalDebt;
 
     constructor (
-        address _RUG,
+        address _PONZI,
         address _DAI,
         address _Frax,
         address _SCAM,
-        address _RUGDAI,
+        address _PONZIDAI,
         uint _blocksNeededForQueue
     ) {
-        require( _RUG != address(0) );
-        RUG = _RUG;
+        require( _PONZI != address(0) );
+        PONZI = _PONZI;
 
         isReserveToken[ _DAI ] = true;
         reserveTokens.push( _DAI );
@@ -285,8 +285,8 @@ contract RugTreasury is Ownable {
         isReserveToken[ _Frax] = true;
         reserveTokens.push( _Frax );
 
-       isLiquidityToken[ _RUGDAI ] = true;
-       liquidityTokens.push( _RUGDAI );
+       isLiquidityToken[ _PONZIDAI ] = true;
+       liquidityTokens.push( _PONZIDAI );
 
         blocksNeededForQueue = _blocksNeededForQueue;
     }
@@ -311,7 +311,7 @@ contract RugTreasury is Ownable {
         uint value = valueOf(_token, _amount);
         // mint OHM needed and store amount of rewards for distribution
         send_ = value.sub( _profit );
-        IERC20Mintable( RUG ).mint( msg.sender, send_ );
+        IERC20Mintable( PONZI ).mint( msg.sender, send_ );
 
         totalReserves = totalReserves.add( value );
         emit ReservesUpdated( totalReserves );
@@ -329,7 +329,7 @@ contract RugTreasury is Ownable {
         require( isReserveSpender[ msg.sender ] == true, "Not approved" );
 
         uint value = valueOf( _token, _amount );
-        IRUGERC20( RUG ).burnFrom( msg.sender, value );
+        IRUGERC20( PONZI ).burnFrom( msg.sender, value );
 
         totalReserves = totalReserves.sub( value );
         emit ReservesUpdated( totalReserves );
@@ -393,12 +393,12 @@ contract RugTreasury is Ownable {
     function repayDebtWithOHM( uint _amount ) external {
         require( isDebtor[ msg.sender ], "Not approved" );
 
-        IRUGERC20( RUG ).burnFrom( msg.sender, _amount );
+        IRUGERC20( PONZI ).burnFrom( msg.sender, _amount );
 
         debtorBalance[ msg.sender ] = debtorBalance[ msg.sender ].sub( _amount );
         totalDebt = totalDebt.sub( _amount );
 
-        emit RepayDebt( msg.sender, RUG, _amount, _amount );
+        emit RepayDebt( msg.sender, PONZI, _amount, _amount );
     }
 
     /**
@@ -431,7 +431,7 @@ contract RugTreasury is Ownable {
         require( isRewardManager[ msg.sender ], "Not approved" );
         require( _amount <= excessReserves(), "Insufficient reserves" );
 
-        IERC20Mintable( RUG ).mint( _recipient, _amount );
+        IERC20Mintable( PONZI ).mint( _recipient, _amount );
 
         emit RewardsMinted( msg.sender, _recipient, _amount );
     } 
@@ -441,7 +441,7 @@ contract RugTreasury is Ownable {
         @return uint
      */
     function excessReserves() public view returns ( uint ) {
-        return totalReserves.sub( IERC20( RUG ).totalSupply().sub( totalDebt ) );
+        return totalReserves.sub( IERC20( PONZI ).totalSupply().sub( totalDebt ) );
     }
 
     /**
@@ -466,15 +466,15 @@ contract RugTreasury is Ownable {
     }
 
     /**
-        @notice returns RUG valuation of asset
+        @notice returns PONZI valuation of asset
         @param _token address
         @param _amount uint
         @return value_ uint
      */
     function valueOf( address _token, uint _amount ) public view returns ( uint value_ ) {
         if ( isReserveToken[ _token ] ) {
-            // convert amount to match RUG decimals
-            value_ = _amount.mul( 10 ** IERC20( RUG ).decimals() ).div( 10 ** IERC20( _token ).decimals() );
+            // convert amount to match PONZI decimals
+            value_ = _amount.mul( 10 ** IERC20( PONZI ).decimals() ).div( 10 ** IERC20( _token ).decimals() );
         } else if ( isLiquidityToken[ _token ] ) {
             value_ = IBondCalculator( bondCalculator[ _token ] ).valuation( _token, _amount );
         }
@@ -506,8 +506,8 @@ contract RugTreasury is Ownable {
             debtorQueue[ _address ] = block.number.add( blocksNeededForQueue );
         } else if ( _managing == MANAGING.REWARDMANAGER ) { // 8
             rewardManagerQueue[ _address ] = block.number.add( blocksNeededForQueue );
-        } else if ( _managing == MANAGING.SRUG ) { // 9
-            sRUGQueue = block.number.add( blocksNeededForQueue );
+        } else if ( _managing == MANAGING.SPONZI ) { // 9
+            sPONZIQueue = block.number.add( blocksNeededForQueue );
         } else return false;
 
         emit ChangeQueued( _managing, _address );
@@ -618,8 +618,8 @@ contract RugTreasury is Ownable {
             isRewardManager[ _address ] = result;
 
         } else if ( _managing == MANAGING.SRUG ) { // 9
-            sRUGQueue = 0;
-            sRUG = _address;
+            sPONZIQueue = 0;
+            sPONZI = _address;
             result = true;
 
         } else return false;
